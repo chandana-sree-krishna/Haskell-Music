@@ -1,0 +1,49 @@
+{--Data.ByteString module is intended to be imported "qualified" to avoid name clashes with Prelude functions.
+--}
+
+--So we use:
+import qualified Data.ByteString as B
+
+{--
+Builders denote sequences of bytes.
+They are Monoids where mempty is the zero-length sequence and mappend is concatenation, which runs in O(1)
+--}
+
+wave :: [Float]
+B.floatLE :: Float -> B.Builder
+
+{--
+newtype B.Builder
+  = Data.ByteString.Builder.Internal.Builder (forall r.
+                                              Data.ByteString.Builder.Internal.BuildStep r
+                                              -> Data.ByteString.Builder.Internal.BuildStep r)
+  	-- Defined in ‘Data.ByteString.Builder.Internal’
+instance Monoid B.Builder
+  -- Defined in ‘Data.ByteString.Builder.Internal’
+
+--}
+
+map B.floatLE wave :: [B.Builder]
+fold $ map B.floatLE wave :: B.Builder
+B.toLazyByteString :: B.Builder -> Data.ByteString.Lazy.Internal.ByteString
+
+-- After importing qualified Data.ByteString.Lazy as B
+:t B.toLazyByteString $ fold $ map B.floatLE wave
+B.toLazyByteString $ fold $ map B.floatLE wave :: B.ByteString
+
+-- To write the sin wave into a file
+:t B.writeFile
+B.writeFile :: FilePath -> B.ByteString -> IO ()
+
+-- To write the sine wave into the file output.bin
+B.writeFile "output.bin" $  B.toLazyByteString $ fold $ map B.floatLE wave
+
+
+-- Shell command to play sound:
+-- Should install ffmpeg before this
+ffplay -f f32le -ar 48000 output.bin &
+
+:t runCommand
+runCommand :: String -> IO ProcessHandle
+
+
